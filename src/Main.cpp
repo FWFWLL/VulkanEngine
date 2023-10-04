@@ -1,7 +1,9 @@
-#include <iostream>
+#include "Application.hpp"
 
 int main(int argc, char* argv[]) {
-	std::cout << "Hello, world!" << std::endl;
+	Application app;
+
+	app.run();
 
 	return 0;
 }
