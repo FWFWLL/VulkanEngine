@@ -1,14 +1,18 @@
 #include "Application.hpp"
 
-Application::Application() {
+#include <GLFW/glfw3.h>
 
-}
+namespace FFL {
 
-Application::~Application() {
+Application::Application() {}
 
-}
+Application::~Application() {}
 
 void Application::run() {
-	std::cout << "Hello, world!" << std::endl;
+	while(!mWindow.shouldClose()) {
+		glfwPollEvents();
+	}
+}
+
 }
 

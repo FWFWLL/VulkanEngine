@@ -18,7 +18,7 @@ clean:
 	fi
 
 run: all
-	@cd build && ./HelloCMake
+	@cd build && echo; ./VulkanEngine || true
 
 help:
 	@echo "The following are some of the valid targets for this Makefile:"

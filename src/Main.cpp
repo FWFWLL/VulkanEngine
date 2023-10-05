@@ -1,10 +1,19 @@
 #include "Application.hpp"
 
-int main(int argc, char* argv[]) {
-	Application app;
+#include <cstdlib>
+#include <iostream>
 
-	app.run();
+int main() {
+	try {
+		FFL::Application app;
 
-	return 0;
+		app.run();
+	} catch(const std::exception &exception) {
+		std::cerr << exception.what() << std::endl;
+
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
 }
 
