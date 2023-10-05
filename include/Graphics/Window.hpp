@@ -11,19 +11,19 @@ namespace FFL {
 
 class Window {
 public:
-	Window(const uint32_t pWidth, const uint32_t pHeight, const char *pTitle);
+	Window(const uint32_t pWidth, const uint32_t pHeight, const char* pTitle);
 	~Window();
 
 	bool shouldClose() const {return glfwWindowShouldClose(mWindow);}
 
-	void createWindowSurface(VkInstance pInstance, VkSurfaceKHR *pSurface);
+	void createWindowSurface(VkInstance pInstance, VkSurfaceKHR* pSurface);
 private:
 	uint32_t mWidth;
 	uint32_t mHeight;
 
-	const char *mTitle;
+	const char* mTitle;
 
-	GLFWwindow *mWindow;
+	GLFWwindow* mWindow;
 
 	void initWindow();
 };

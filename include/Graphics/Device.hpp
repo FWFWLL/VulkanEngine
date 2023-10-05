@@ -14,10 +14,14 @@ public:
 private:
 	VkInstance mInstance;
 
+	VkDebugUtilsMessengerEXT mDebugMessenger;
+
 	void createInstance();
 	std::vector<const char*> getRequiredExtensions();
-	void enumerateExtensions();
-
+	void checkExtensionsSupport();
+	void checkLayersSupport();
+	void createDebugMessenger();
+	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& pCreateInfo);
 };
 
 }

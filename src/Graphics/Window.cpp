@@ -7,7 +7,7 @@
 
 namespace FFL {
 
-Window::Window(const uint32_t pWidth, const uint32_t pHeight, const char *pTitle) : mWidth{pWidth}, mHeight{pHeight}, mTitle{pTitle} {
+Window::Window(const uint32_t pWidth, const uint32_t pHeight, const char* pTitle) : mWidth{pWidth}, mHeight{pHeight}, mTitle{pTitle} {
 	initWindow();
 }
 
@@ -30,7 +30,7 @@ void Window::initWindow() {
 	glfwSetWindowUserPointer(mWindow, this);
 }
 
-void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR *surface) {
+void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface) {
 	if(glfwCreateWindowSurface(instance, mWindow, nullptr, surface) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create window surface!");
 	}
