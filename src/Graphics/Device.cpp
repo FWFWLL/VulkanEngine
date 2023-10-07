@@ -4,9 +4,11 @@
 #include <cstdint>
 #include <cstring>
 #include <iostream>
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <GLFW/glfw3.h>
@@ -14,9 +16,10 @@
 
 namespace FFL {
 
-Device::Device() {
+Device::Device() : mPhysicalDevice{VK_NULL_HANDLE} {
 	createInstance();
-	createDebugMessenger();
+	setupDebugMessenger();
+	pickPhysicalDevice();
 }
 
 Device::~Device() {
@@ -54,7 +57,7 @@ void Device::createInstance() {
 	} else {
 		createInfo.enabledLayerCount = 0;
 		createInfo.ppEnabledLayerNames = nullptr;
-		
+
 		createInfo.pNext = nullptr;
 	}
 
@@ -141,7 +144,7 @@ void Device::checkLayersSupport() {
 	}
 }
 
-void Device::createDebugMessenger() {
+void Device::setupDebugMessenger() {
 	if(!VALIDATION_ENABLED) {
 		return;
 	}
@@ -150,19 +153,98 @@ void Device::createDebugMessenger() {
 	populateDebugMessengerCreateInfo(createInfo);
 
 	if(createDebugUtilsMessengerEXT(mInstance, &createInfo, nullptr, &mDebugMessenger) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create debug messenger!");
+		throw std::runtime_error("Failed to set up debug messenger!");
 	}
 }
 
 void Device::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& pCreateInfo) {
 	pCreateInfo = {};
 	pCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    pCreateInfo.pNext = nullptr;
-    pCreateInfo.flags = 0;
-    pCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    pCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    pCreateInfo.pfnUserCallback = debugCallback;
-    pCreateInfo.pUserData = nullptr;
+	pCreateInfo.pNext = nullptr;
+	pCreateInfo.flags = 0;
+	pCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	pCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	pCreateInfo.pfnUserCallback = debugCallback;
+	pCreateInfo.pUserData = nullptr;
+}
+
+void Device::pickPhysicalDevice() {
+	uint32_t deviceCount = 0;
+	vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr);
+
+	if(deviceCount == 0) {
+		throw std::runtime_error("Failed to find GPUs with Vulkan support!");
+	}
+
+	std::vector<VkPhysicalDevice> PhysicalDevices(deviceCount);
+	vkEnumeratePhysicalDevices(mInstance, &deviceCount, PhysicalDevices.data());
+
+	std::multimap<int, VkPhysicalDevice> deviceCandidates;
+
+	std::cout << "Available Physical Devices:\n";
+	for(const auto& physicalDevice : PhysicalDevices) {
+		int score = ratePhysicalDeviceSuitability(physicalDevice);
+		deviceCandidates.insert(std::make_pair(score, physicalDevice));
+	}
+
+	if(deviceCandidates.rbegin()->first > 0) {
+		mPhysicalDevice = deviceCandidates.rbegin()->second;
+	}else {
+		throw std::runtime_error("Failed to find a suitable GPU!");
+	}
+
+	vkGetPhysicalDeviceProperties(mPhysicalDevice, &properties);
+}
+
+int Device::ratePhysicalDeviceSuitability(const VkPhysicalDevice pPhysicalDevice) {
+	int score = 0;
+
+	VkPhysicalDeviceFeatures deviceFeatures;
+	vkGetPhysicalDeviceFeatures(pPhysicalDevice, &deviceFeatures);
+	if(!deviceFeatures.geometryShader) {
+		return 0;
+	}
+
+	QueueFamilyIndices indices = findQueueFamilies(pPhysicalDevice);
+	if(!indices.isComplete()) {
+		return 0;
+	}
+
+	VkPhysicalDeviceProperties deviceProperties;
+	vkGetPhysicalDeviceProperties(pPhysicalDevice, &deviceProperties);
+	score += deviceProperties.limits.maxImageDimension2D;
+	if(deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+		score += 1000;
+	}
+
+	std::cout << '\t' << deviceProperties.deviceName << ", Score: " << score << '\n';
+
+	return score;
+}
+
+QueueFamilyIndices Device::findQueueFamilies(const VkPhysicalDevice pPhysicalDevice) {
+	QueueFamilyIndices indices;
+
+	uint32_t queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(pPhysicalDevice, &queueFamilyCount, nullptr);
+
+	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(pPhysicalDevice, &queueFamilyCount, queueFamilies.data());
+
+	uint32_t i = 0;
+	for(const auto& queueFamily : queueFamilies) {
+		if(queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+			indices.graphicsFamily = i;
+		}
+
+		if(indices.isComplete()) {
+			break;
+		}
+
+		i++;
+	}
+
+	return indices;
 }
 
 }
