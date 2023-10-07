@@ -176,24 +176,23 @@ void Device::pickPhysicalDevice() {
 		throw std::runtime_error("Failed to find GPUs with Vulkan support!");
 	}
 
-	std::vector<VkPhysicalDevice> PhysicalDevices(deviceCount);
-	vkEnumeratePhysicalDevices(mInstance, &deviceCount, PhysicalDevices.data());
+	std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
+	vkEnumeratePhysicalDevices(mInstance, &deviceCount, physicalDevices.data());
 
 	std::multimap<int, VkPhysicalDevice> deviceCandidates;
 
-	std::cout << "Available Physical Devices:\n";
-	for(const auto& physicalDevice : PhysicalDevices) {
-		int score = ratePhysicalDeviceSuitability(physicalDevice);
-		deviceCandidates.insert(std::make_pair(score, physicalDevice));
+	std::cout << "Available Devices:\n";
+	for(const auto& physicalDevice : physicalDevices) {
+		deviceCandidates.insert(std::make_pair(ratePhysicalDeviceSuitability(physicalDevice), physicalDevice));
 	}
 
 	if(deviceCandidates.rbegin()->first > 0) {
 		mPhysicalDevice = deviceCandidates.rbegin()->second;
+
+		vkGetPhysicalDeviceProperties(mPhysicalDevice, &properties);
 	}else {
 		throw std::runtime_error("Failed to find a suitable GPU!");
 	}
-
-	vkGetPhysicalDeviceProperties(mPhysicalDevice, &properties);
 }
 
 int Device::ratePhysicalDeviceSuitability(const VkPhysicalDevice pPhysicalDevice) {
@@ -201,18 +200,22 @@ int Device::ratePhysicalDeviceSuitability(const VkPhysicalDevice pPhysicalDevice
 
 	VkPhysicalDeviceFeatures deviceFeatures;
 	vkGetPhysicalDeviceFeatures(pPhysicalDevice, &deviceFeatures);
+
 	if(!deviceFeatures.geometryShader) {
 		return 0;
 	}
 
 	QueueFamilyIndices indices = findQueueFamilies(pPhysicalDevice);
+
 	if(!indices.isComplete()) {
 		return 0;
 	}
 
 	VkPhysicalDeviceProperties deviceProperties;
 	vkGetPhysicalDeviceProperties(pPhysicalDevice, &deviceProperties);
+
 	score += deviceProperties.limits.maxImageDimension2D;
+
 	if(deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
 		score += 1000;
 	}

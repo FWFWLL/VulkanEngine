@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <optional>
+#include <map>
 #include <vector>
 
 #include <vulkan/vulkan_core.h>
