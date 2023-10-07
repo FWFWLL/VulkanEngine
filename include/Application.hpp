@@ -14,12 +14,14 @@ public:
 	static constexpr uint32_t SCREEN_WIDTH = 640;
 	static constexpr uint32_t SCREEN_HEIGHT = 640;
 
+	static constexpr const char* WINDOW_TITLE = "VulkanEngine";
+
 	Application();
 	~Application();
 
 	void run();
 private:
-	Window mWindow{SCREEN_WIDTH, SCREEN_HEIGHT, "VulkanEngine"};
+	Window mWindow{SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE};
 	Device mDevice{};
 };
 

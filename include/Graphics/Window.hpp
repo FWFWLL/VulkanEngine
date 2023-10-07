@@ -16,7 +16,7 @@ public:
 
 	bool shouldClose() const {return glfwWindowShouldClose(mWindow);}
 
-	void createWindowSurface(VkInstance pInstance, VkSurfaceKHR* pSurface);
+	void createWindowSurface(const VkInstance pInstance, VkSurfaceKHR* pSurface);
 private:
 	uint32_t mWidth;
 	uint32_t mHeight;

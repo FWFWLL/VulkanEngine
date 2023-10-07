@@ -9,9 +9,9 @@
 namespace FFL {
 
 #ifdef NDEBUG
-	const bool VALIDATION_ENABLED = false;
+const bool VALIDATION_ENABLED = false;
 #else
-	const bool VALIDATION_ENABLED = true;
+const bool VALIDATION_ENABLED = true;
 #endif
 
 const std::vector<const char*> REQUIRED_VALIDATION_LAYERS = {
